@@ -1,6 +1,6 @@
 --- src/TerrariaNetCore/Terraria/Terraria.csproj
 +++ src/tModLoader/Terraria/Terraria.csproj
-@@ -11,59 +_,86 @@
+@@ -11,59 +_,132 @@
  		<Company>Re-Logic</Company>
  		<Copyright>Copyright © 2022 Re-Logic</Copyright>
  		<RootNamespace>Terraria</RootNamespace>
@@ -15,6 +15,49 @@
  		<OutputName>$(AssemblyName)</OutputName>
  	</PropertyGroup>
  
++	<!-- Android -->
++	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
++		<SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
++		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
++		<ApplicationId>io.github.laosparrow.tmlpe</ApplicationId>
++		<ApplicationVersion>1</ApplicationVersion>
++		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
++		<RunAOTCompilation>false</RunAOTCompilation>
++		<UseInterpreter>false</UseInterpreter>
++		<MonoGamePlatform>Android</MonoGamePlatform>
++	</PropertyGroup>
++
++	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android' and '$(Configuration)|$(Platform)'=='Release|AnyCPU'">
++		<AndroidPackageFormat>apk</AndroidPackageFormat> <!--Has to be apk, or app crashes on startup-->
++		<!--    <AndroidAotMode>Hybrid</AndroidAotMode>-->
++		<!--    <TrimMode>link</TrimMode>-->
++		<!--    <PublishTrimmed>false</PublishTrimmed>-->
++	</PropertyGroup>
++
++	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
++		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4" />
++		
++		<ExtraContent Include="$(TerrariaSteamPath)/Content/**/*.*">
++			<ContentDir>Content/</ContentDir>
++		</ExtraContent>
++		
++		<None Remove="Libraries/Native/**" />
++		<TransformFile Remove="Libraries/Native/**" />
++		<AndroidLibrary Remove="Libraries/Native/**" />
++		<AndroidNativeLibrary Remove="Libraries/Native/**" />
++		<JavaSourceJar Remove="Libraries/Native/**" />
++		<AndroidJavaSource Remove="Libraries/Native/**" />
++		
++		<Reference Include="Libraries/Common/CsvHelper.dll" />
++		<Reference Include="Libraries/Common/MP3Sharp.dll" />
++		<Reference Include="Libraries/Common/Newtonsoft.Json.dll" />
++		<Reference Include="Libraries/Common/NVorbis.dll" />
++		<Reference Include="Libraries/Common/RailSDK.Net.dll" />
++		<Reference Include="Libraries/Common/SteelSeriesEngineWrapper.dll" />
++		<Reference Include="Libraries/Common/log4net.dll" />
++		<Reference Include="Libraries/Common/TerrariaHooks.dll" />
++	</ItemGroup>
++
  	<!-- Build Configuration -->
  	<PropertyGroup>
 +		<UseAppHost>false</UseAppHost>
@@ -41,7 +84,7 @@
  
  	<!-- References -->
  	<ItemGroup>
- 		<ProjectReference Include="../../../FNA/FNA.Core.csproj" />
+-		<ProjectReference Include="../../../FNA/FNA.Core.csproj" />
  		<ProjectReference Include="../ReLogic/ReLogic.csproj" />
 -		<EmbeddedResource Include="../ReLogic/bin/$(Configuration)/$(TargetFramework)/ReLogic.dll">
 -			<Link>Libraries/ReLogic/ReLogic.dll</Link>
@@ -62,7 +105,8 @@
 +		<PackageReference Include="DotNetZip" Version="1.16.0" />
  		<PackageReference Include="Steamworks.NET" Version="20.1.0" />
 +		<PackageReference Include="Basic.Reference.Assemblies.Net80" Version="1.5.0" />
-+		<PackageReference Include="MonoMod.RuntimeDetour" Version="25.2.3" />
++<!--		<PackageReference Include="MonoMod.RuntimeDetour" Version="25.2.3" />-->
++		<ProjectReference Include="../../../MonoMod/src/MonoMod.RuntimeDetour/MonoMod.RuntimeDetour.csproj" />
 +		<PackageReference Include="Microsoft.Win32.Registry" Version="6.0.0-preview.5.21301.5 " />
 +		<PackageReference Include="Hjson" Version="3.0.0" />
 +		<PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
@@ -86,6 +130,8 @@
 +		<EmbeddedResource Include="ModLoader/Templates/**">
 +			<LogicalName>$([System.String]::Copy('Terraria/%(Identity)').Replace('\', '/'))</LogicalName>
 +		</EmbeddedResource>
++		<Compile Remove="Libraries\Native\**" />
++		<EmbeddedResource Remove="Libraries\Native\**" />
  	</ItemGroup>
  
  	<!-- Files -->
@@ -96,12 +142,25 @@
  		<None Remove="Libraries/XNA/**" />
  		<Content Include="Libraries/Native/**" CopyToOutputDirectory="PreserveNewest" />
 +		<Content Include="release_extras/**" CopyToOutputDirectory="PreserveNewest" Link="%(RecursiveDir)%(Filename)%(Extension)" />
++		<Content Remove="Libraries\Native\**" />
  	</ItemGroup>
  
  	<!-- Import tasks -->
-@@ -104,9 +_,13 @@
+@@ -71,7 +_,7 @@
+ 	<UsingTask TaskName="OrganizeReferenceDestinations" AssemblyFile="$(BuildTasksAssemblyFile)" TaskFactory="$(BuildTasksTaskFactory)" />
+ 
+ 	<!-- Organize output copies of Project, NuGet, and directly referenced libraries under a single tidy folder. -->
+-	<Target Name="OrganizeAllReferences" AfterTargets="ResolveAssemblyReferences" BeforeTargets="GenerateBuildDependencyFile;CopyFilesToOutputDirectory">
++	<Target Name="OrganizeAllReferences" AfterTargets="ResolveAssemblyReferences" BeforeTargets="GenerateBuildDependencyFile;CopyFilesToOutputDirectory"  Condition="'$(TargetFramework)' != 'net8.0-android'">
+ 		<!-- Run the task. -->
+ 		<OrganizeReferenceDestinations BaseDirectory="$(LibrariesDirectory)" Items="@(ReferenceCopyLocalPaths)">
+ 			<Output TaskParameter="Items" ItemName="ReferenceCopyLocalPaths_New" />
+@@ -102,11 +_,15 @@
+ 	</Target>
+ 
  	<!-- Installs the build's output into the relevant game folder. -->
- 	<Target Name="CopyToActualOutputDirectory" AfterTargets="Build">
+-	<Target Name="CopyToActualOutputDirectory" AfterTargets="Build">
++	<Target Name="CopyToActualOutputDirectory" AfterTargets="Build" Condition="'$(TargetFramework)' != 'net8.0-android'">
  		<PropertyGroup>
 -			<_ActualOutputDirectory>$(TerrariaSteamPath)</_ActualOutputDirectory>
 +			<_ActualOutputDirectory>$(tModLoaderSteamPath)</_ActualOutputDirectory>

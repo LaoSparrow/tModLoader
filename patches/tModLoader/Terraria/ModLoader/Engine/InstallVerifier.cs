@@ -91,16 +91,24 @@ internal static class InstallVerifier
 		DistributionPlatform = DetectPlatform(out string detectionDetails);
 		Logging.tML.Info($"Distribution Platform: {DistributionPlatform}. Detection method: {detectionDetails}");
 
+#if !ANDROID
 		if (DistributionPlatform == DistributionPlatform.GoG) {
 			CheckGoG();
 		}
 		else {
 			CheckSteam();
 		}
+#endif
 	}
 
 	private static DistributionPlatform DetectPlatform(out string detectionDetails)
 	{
+#if ANDROID
+		// TMLPETODO: InstallVerifier
+		detectionDetails = "Android InstallVerifier WIP";
+		return DistributionPlatform.Unknown;
+#endif
+
 		if (Program.LaunchParameters.ContainsKey("-steam")) {
 			detectionDetails = "-steam launch parameter";
 			return DistributionPlatform.Steam;
@@ -152,7 +160,7 @@ internal static class InstallVerifier
 		// If .exe not present check parent directory (Nested Manual Install)
 		vanillaPath = Directory.GetParent(vanillaPath).FullName;
 		yield return vanillaPath;
-		
+
 		// If .exe not present, check Terraria directory (Side-by-Side Manual Install)
 		vanillaPath = Path.Combine(vanillaPath, "Terraria");
 		if (Platform.IsOSX) {

@@ -13,10 +13,13 @@ internal static class LoggingHooks
 {
 	internal static void Init()
 	{
+		// TMLPETODO: Hooking
+#if !ANDROID
 		FixBrokenConsolePipeError();
 		PrettifyStackTraceSources();
 		HookWebRequests();
 		HookProcessStart();
+#endif
 	}
 
 	private static Hook writeFileNativeHook;

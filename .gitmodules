@@ -1,6 +1,15 @@
 [submodule "setup/PatchReviewer"]
 	path = setup/PatchReviewer
 	url = https://github.com/Chicken-Bones/PatchReviewer.git
-[submodule "FNA"]
-	path = FNA
-	url = https://github.com/tModLoader/FNA.git
+[submodule "TMLPE-FNA"]
+	path = TMLPE-FNA
+	url = https://github.com/LaoSparrow/TMLPE-FNA.git
+[submodule "TMLPE-FNA-NET.NativeAssets"]
+	path = TMLPE-FNA-NET.NativeAssets
+	url = https://github.com/LaoSparrow/TMLPE-FNA-NET.NativeAssets.git
+[submodule "MonoMod"]
+	path = MonoMod
+	url = https://github.com/LaoSparrow/MonoMod.Android.git
+[submodule "TMLPE-SDL2DroidSharp-JBindings"]
+	path = TMLPE-SDL2DroidSharp-JBindings
+	url = https://github.com/LaoSparrow/TMLPE-SDL2DroidSharp-JBindings.git

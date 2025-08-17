@@ -130,14 +130,18 @@ public static partial class Logging
 
 			previousException = args.Exception;
 
-			string msg = args.Exception.Message + " " + Language.GetTextValue("tModLoader.RuntimeErrorSeeLogsForFullTrace", Path.GetFileName(LogPath));
-			// Solxan: We are using Program.SavePathShared == null as a flag to indicate Main CCtor can't run. 
+			string msg = args.Exception.ToString() + "\n" + Language.GetTextValue("tModLoader.RuntimeErrorSeeLogsForFullTrace", Path.GetFileName(LogPath));
+			// Solxan: We are using Program.SavePathShared == null as a flag to indicate Main CCtor can't run.
 			if (Program.SavePathShared == null || Main.dedServ) { // TODO, sometimes console write fails on unix clients. Hopefully it doesn't happen on servers? System.IO.IOException: Input/output error at System.ConsolePal.Write
+#if !ANDROID
 				Console.ForegroundColor = ConsoleColor.DarkMagenta;
+#endif
 				Console.WriteLine(msg);
+#if !ANDROID
 				Console.ResetColor();
+#endif
 			}
-			// Solxan: We are using Program.SavePathShared == null as a flag to indicate ModCompile CCtor can't run. 
+			// Solxan: We are using Program.SavePathShared == null as a flag to indicate ModCompile CCtor can't run.
 			else if (Program.SavePathShared != null && ModCompile.activelyModding && !Main.gameMenu) {
 				AddChatMessage(msg);
 			}

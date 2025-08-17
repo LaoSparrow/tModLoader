@@ -1,0 +1,10 @@
+--- src/TerrariaNetCore/ReLogic/OS/Platform.cs
++++ src/tModLoader/ReLogic/OS/Platform.cs
+@@ -9,6 +_,7 @@
+ 
+ public abstract class Platform : IDisposable
+ {
++	// TMLPETODO: AndroidPlatform
+ 	public static readonly Platform Current =
+ 		OperatingSystem.IsWindows() ? new WindowsPlatform() :
+ 		OperatingSystem.IsMacOS() ? new OsxPlatform()

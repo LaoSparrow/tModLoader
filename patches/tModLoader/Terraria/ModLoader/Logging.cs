@@ -77,7 +77,11 @@ public static partial class Logging
 		tML.InfoFormat("Running on {0} (v{1}) {2} {3} {4}", ReLogic.OS.Platform.Current.Type, Environment.OSVersion.Version, System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture, FrameworkVersion.Framework, FrameworkVersion.Version);
 		tML.InfoFormat("CPU: {0} processors. RAM: {1}", Environment.ProcessorCount, UIMemoryBar.SizeSuffix(UIMemoryBar.GetTotalMemory()));
 		tML.InfoFormat("FrameworkDescription: {0}", RuntimeInformation.FrameworkDescription);
+#if ANDROID
+		tML.InfoFormat("Executable: AndroidApk");
+#else
 		tML.InfoFormat("Executable: {0}", Assembly.GetEntryAssembly().Location);
+#endif
 		tML.InfoFormat("Working Directory: {0}", Path.GetFullPath(Directory.GetCurrentDirectory()));
 
 		string args = string.Join(' ', Environment.GetCommandLineArgs().Skip(1));

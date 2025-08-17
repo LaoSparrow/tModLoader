@@ -156,6 +156,8 @@ public static class AssemblyManager
 			["Ionic.Zip.Reduced"] = typeof(ZipFile).Assembly, // Assembly name changed to DotNetZip
 		};
 
+		// TMLPETODO: ValidateAssemblyNameWithSimpleName
+#if !ANDROID
 		private static Hook _hook = new Hook(
 			typeof(AssemblyLoadContext).GetMethod("ValidateAssemblyNameWithSimpleName", BindingFlags.Static | BindingFlags.NonPublic),
 			hook_ValidateAssemblyNameWithSimpleName);
@@ -168,6 +170,7 @@ public static class AssemblyManager
 
 			return orig(assembly, requestedSimpleName);
 		}
+#endif
 
 		public static Assembly GetAssembly(string name) => _redirects.TryGetValue(name, out var asm) ? asm : null;
 	}
