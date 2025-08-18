@@ -669,4 +669,20 @@ public partial class Main
 			ConfigManager.OnChangedAll();
 		}
 	}
+
+	private TimeSpan ImeFixLastCheckedTime;
+	private void ImeFix(ref GameTime gt)
+	{
+		// TMLPEFIXME: this is ugly
+		// the purpose of this sh*t is to fix Ime flashing when client fps is higher than 60
+		if (PlayerInput.WritingText) {
+			ImeFixLastCheckedTime = gt.TotalGameTime;
+			return;
+		}
+
+		if (gt.TotalGameTime - ImeFixLastCheckedTime > TimeSpan.FromMilliseconds(1000.0 / 60.0 * 5.0)) {
+			ImeFixLastCheckedTime = gt.TotalGameTime;
+			HandleIME();
+		}
+	}
 }

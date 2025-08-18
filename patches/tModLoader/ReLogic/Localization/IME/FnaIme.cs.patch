@@ -1,0 +1,23 @@
+--- src/TerrariaNetCore/ReLogic/Localization/IME/FnaIme.cs
++++ src/tModLoader/ReLogic/Localization/IME/FnaIme.cs
+@@ -31,6 +_,20 @@
+ 
+ 	public override string GetCandidate(uint index) => string.Empty;
+ 
++#if ANDROID
++	protected override void OnEnable()
++	{
++		base.OnEnable();
++		TextInputEXT.StartTextInput();
++	}
++
++	protected override void OnDisable()
++	{
++		base.OnDisable();
++		TextInputEXT.StopTextInput();
++	}
++#endif
++
+ 	protected override void Dispose(bool disposing)
+ 	{
+ 		if (!_disposedValue) {

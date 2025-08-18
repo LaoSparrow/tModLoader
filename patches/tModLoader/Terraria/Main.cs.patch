@@ -2535,7 +2535,7 @@
  		for (int i = 0; i < itemAnimationsRegistered.Count; i++) {
  			int num = itemAnimationsRegistered[i];
  			if (itemAnimations[num] != null)
-@@ -13392,7 +_,15 @@
+@@ -13392,7 +_,17 @@
  
  		if (!_isDrawingOrUpdating) {
  			_isDrawingOrUpdating = true;
@@ -2544,6 +2544,8 @@
 +			try {
 -			DoUpdate(ref gameTime);
 +				DoUpdate(ref gameTime);
++				// TMLPE: FIX IME on Android
++				ImeFix(ref gameTime);
 +			}
 +			catch (Exception e) {
 +				// Logging.Terraria.Error(e); Removed, duplicate log messages.
@@ -2880,7 +2882,15 @@
  	public static void clrInput()
  	{
  		keyCount = 0;
-@@ -15840,7 +_,8 @@
+@@ -15834,13 +_,16 @@
+ 
+ 		inputTextEnter = false;
+ 		inputTextEscape = false;
++		// TMLPEFIX: Ime backspace
++		var inputTextBackspace = false;
+ 		string text = oldString;
+ 		string text2 = "";
+ 		if (text == null)
  			text = "";
  
  		bool flag = false;
@@ -2901,6 +2911,30 @@
  			for (int i = 0; i < keyCount; i++) {
  				int num = keyInt[i];
  				string text3 = keyString[i];
+@@ -15875,6 +_,10 @@
+ 					inputTextEscape = true;
+ 				else if (num >= 32 && num != 127)
+ 					text2 += text3;
++				// TMLPEFIX: Ime backspace
++				else if (num == 8)
++					inputTextBackspace = true;
++
+ 			}
+ 		}
+ 
+@@ -15914,6 +_,12 @@
+ 			}
+ 		}
+ 
++		// TMLPEFIX: Ime backspace
++		if (inputTextBackspace && text.Length > 0) {
++			TextSnippet[] array = ChatManager.ParseMessage(text, Microsoft.Xna.Framework.Color.White).ToArray();
++			text = ((!array[array.Length - 1].DeleteWhole) ? text.Substring(0, text.Length - 1) : text.Substring(0, text.Length - array[array.Length - 1].TextOriginal.Length));
++		}
++
+ 		return text;
+ 	}
+ 
 @@ -15938,11 +_,16 @@
  		MouseText(cursorText, null, rare, diff, hackedMouseX, hackedMouseY, hackedScreenWidth, hackedScreenHeight, pushWidthX, noOverride: true);
  	}
