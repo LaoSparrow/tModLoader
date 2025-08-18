@@ -1,6 +1,6 @@
 --- src/TerrariaNetCore/Terraria/Terraria.csproj
 +++ src/tModLoader/Terraria/Terraria.csproj
-@@ -11,59 +_,132 @@
+@@ -11,59 +_,134 @@
  		<Company>Re-Logic</Company>
  		<Copyright>Copyright © 2022 Re-Logic</Copyright>
  		<RootNamespace>Terraria</RootNamespace>
@@ -19,7 +19,9 @@
 +	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
 +		<SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
 +		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
-+		<ApplicationId>io.github.laosparrow.tmlpe</ApplicationId>
++<!--		<ApplicationId>io.github.laosparrow.tmlpe</ApplicationId>-->
++		<!-- Fuck Android -->
++		<ApplicationId>com.antutu.ABenchMark</ApplicationId>
 +		<ApplicationVersion>1</ApplicationVersion>
 +		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 +		<RunAOTCompilation>false</RunAOTCompilation>
