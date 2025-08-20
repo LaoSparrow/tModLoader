@@ -84,9 +84,12 @@ public static class SteamedWraps
 		// On some systems without steam, the native dependencies required for steam fail to load (eg docker without requisite glibc)
 		// Thus, for dedicated servers we delay game-server init until someone tries to use steam features (eg mod browser)
 
+		// TMLPETODO: steam mod downloading
+#if !ANDROID
 		// Non-steam tModLoader will use the SteamGameServer to perform Browsing & Downloading
 		if (!Main.dedServ && !TryInitViaGameServer())
 			Utils.ShowFancyErrorMessage("Steam Game Server failed to Init. Steam Workshop downloading on GoG is unavailable. Make sure Steam is installed", Interface.loadModsID);
+#endif
 	}
 
 	public static bool TryInitViaGameServer()
@@ -230,7 +233,7 @@ public static class SteamedWraps
 
 	public static EUGCQuery CalculateQuerySort(QueryParameters qParams)
 	{
-		// Only let steam rank by text when we want sorting for popularity, otherwise the results are not sorted when filtered by search term. 
+		// Only let steam rank by text when we want sorting for popularity, otherwise the results are not sorted when filtered by search term.
 		if ((!string.IsNullOrEmpty(qParams.searchGeneric) || !string.IsNullOrEmpty(qParams.searchAuthor)) && qParams.sortingParamater == ModBrowserSortMode.Hot)
 			return EUGCQuery.k_EUGCQuery_RankedByTextSearch;
 
@@ -259,7 +262,7 @@ public static class SteamedWraps
 		else { // assumes SteamAvailable as GetQueryHandle already checks this and is a required pre-req
 			ModifyQueryHandle(ref qHandle, qP);
 			FilterByInternalName(ref qHandle, internalName);
-			
+
 			return SteamGameServerUGC.SendQueryUGCRequest(qHandle);
 		}
 	}

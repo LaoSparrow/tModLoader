@@ -1,6 +1,6 @@
 --- src/TerrariaNetCore/Terraria/Terraria.csproj
 +++ src/tModLoader/Terraria/Terraria.csproj
-@@ -11,59 +_,134 @@
+@@ -11,59 +_,136 @@
  		<Company>Re-Logic</Company>
  		<Copyright>Copyright © 2022 Re-Logic</Copyright>
  		<RootNamespace>Terraria</RootNamespace>
@@ -19,13 +19,14 @@
 +	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
 +		<SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
 +		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
-+<!--		<ApplicationId>io.github.laosparrow.tmlpe</ApplicationId>-->
++		<ApplicationId Condition="'$(ApplicationId)' == '' and '$(Configuration)' == 'Debug'">io.github.laosparrow.tmlpe</ApplicationId>
 +		<!-- Fuck Android -->
-+		<ApplicationId>com.antutu.ABenchMark</ApplicationId>
++		<ApplicationId Condition="'$(ApplicationId)' == '' and '$(Configuration)' == 'Release'">com.antutu.ABenchMark</ApplicationId>
 +		<ApplicationVersion>1</ApplicationVersion>
 +		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 +		<RunAOTCompilation>false</RunAOTCompilation>
 +		<UseInterpreter>false</UseInterpreter>
++		<AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
 +		<MonoGamePlatform>Android</MonoGamePlatform>
 +	</PropertyGroup>
 +
@@ -74,7 +75,8 @@
 +
 +	<!-- Versioning -->
 +	<PropertyGroup>
-+		<tMLVersion Condition="'$(TmlVersion)' == ''">9999.0</tMLVersion>
++		<!-- Force Set TmlVersion -->
++		<tMLVersion Condition="'$(TmlVersion)' == ''">2025.6.3.0</tMLVersion>
 +		<StableVersion Condition="'$(stableVersion)' == ''">0.0</StableVersion>
 +		<BuildPurpose Condition="'$(BuildPurpose)' == ''">dev</BuildPurpose>
 +		<BranchName Condition="'$(BranchName)' == ''">unknown</BranchName>

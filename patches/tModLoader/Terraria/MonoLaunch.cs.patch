@@ -12,7 +12,7 @@
  
  namespace Terraria;
  
-@@ -14,9 +_,19 @@
+@@ -14,9 +_,21 @@
  {
  	private static readonly Dictionary<string, IntPtr> assemblies = new Dictionary<string, IntPtr>();
  
@@ -27,13 +27,15 @@
 +
 +		Thread.CurrentThread.Name = "Entry Thread";
 +
-+#if !ANDROID
++#if ANDROID
++		AssemblyLoadContext.Default.Resolving += ResolveManagedAssemblies;
++#else
  #if NETCORE
 +		NativeLibraries.SetNativeLibraryPath(NativesDir);
  		AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolveNativeLibrary;
  #else
  		AppDomain.CurrentDomain.AssemblyResolve += delegate (object sender, ResolveEventArgs sargs) {
-@@ -32,11 +_,42 @@
+@@ -32,11 +_,56 @@
  			}
  		};
  #endif
@@ -72,7 +74,21 @@
  		Program.LaunchGame(args, monoArgs: true);
  	}
  
-+#if !ANDROID
++#if ANDROID
++	// TMLPE: Trying to fix mod assemblies resolving
++	private static Assembly ResolveManagedAssemblies(AssemblyLoadContext ctx, AssemblyName name)
++	{
++		if (name.Name is null)
++			return null;
++
++		foreach ((string _, AssemblyManager.ModLoadContext modCtx) in AssemblyManager.loadedModContexts) {
++			if (modCtx.assemblies.TryGetValue(name.Name, out Assembly asm))
++				return asm;
++		}
++
++		return null;
++	}
++#else
  #if NETCORE
  	public static readonly string NativesDir = Path.Combine(Environment.CurrentDirectory, "Libraries", "Native", NativePlatformDir);
  

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading;
 using Terraria.ModLoader.UI;
 using System.Runtime.Loader;
@@ -22,7 +23,7 @@ namespace Terraria.ModLoader.Core;
 //todo: further documentation
 public static class AssemblyManager
 {
-	private class ModLoadContext : AssemblyLoadContext
+	internal class ModLoadContext : AssemblyLoadContext
 	{
 		public readonly TmodFile modFile;
 		public readonly BuildProperties properties;
@@ -137,7 +138,6 @@ public static class AssemblyManager
 				if (string.IsNullOrEmpty(runtime.Location))
 					return context.LoadFromByteArray(((ModLoadContext)GetLoadContext(runtime)).assemblyBytes[assemblyName.Name]);
 
-
 				return context.LoadFromAssemblyPath(runtime.Location);
 			}
 		}
@@ -157,7 +157,7 @@ public static class AssemblyManager
 		};
 
 		// TMLPETODO: ValidateAssemblyNameWithSimpleName
-#if !ANDROID
+// #if !ANDROID
 		private static Hook _hook = new Hook(
 			typeof(AssemblyLoadContext).GetMethod("ValidateAssemblyNameWithSimpleName", BindingFlags.Static | BindingFlags.NonPublic),
 			hook_ValidateAssemblyNameWithSimpleName);
@@ -170,7 +170,7 @@ public static class AssemblyManager
 
 			return orig(assembly, requestedSimpleName);
 		}
-#endif
+// #endif
 
 		public static Assembly GetAssembly(string name) => _redirects.TryGetValue(name, out var asm) ? asm : null;
 	}
@@ -199,7 +199,7 @@ public static class AssemblyManager
 
 	private static readonly List<WeakReference<AssemblyLoadContext>> oldLoadContexts = new();
 
-	private static readonly Dictionary<string, ModLoadContext> loadedModContexts = new();
+	internal static readonly Dictionary<string, ModLoadContext> loadedModContexts = new();
 
 	//private static CecilAssemblyResolver cecilAssemblyResolver = new CecilAssemblyResolver();
 
@@ -498,10 +498,38 @@ public static class AssemblyManager
 		await Task.WhenAll(queued).ConfigureAwait(false);
 	}
 
+#if ANDROID
+	private static readonly MethodInfo _DynamicMethod_CreateDynMethod =
+		typeof(DynamicMethod).GetMethod("CreateDynMethod", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+	private static readonly FieldInfo _DynamicMethod_mhandle =
+		typeof(DynamicMethod).GetField("mhandle", BindingFlags.NonPublic | BindingFlags.Instance)!;
+#endif
+
 	private static void ForceJITOnMethod(MethodBase method)
 	{
-		if (method.GetMethodBody() != null)
+		if (method.GetMethodBody() != null) {
+#if ANDROID
+			RuntimeMethodHandle GetMethodHandle(MethodBase method)
+			{
+				// Compile the method handle before getting our hands on the final method handle.
+				// Note that Mono can return RuntimeMethodInfo instead of DynamicMethod in some places, thus bypassing this.
+				// Let's assume that the method was already compiled ahead of this method call if that is the case.
+				if (method is DynamicMethod)
+				{
+					_DynamicMethod_CreateDynMethod?.Invoke(method, ArrayEx.Empty<object?>());
+					if (_DynamicMethod_mhandle != null)
+						return (RuntimeMethodHandle)_DynamicMethod_mhandle.GetValue(method)!;
+				}
+
+				return method.MethodHandle;
+			}
+			// GetFunctionPointer forces the method to be compiled on Mono
+			_ = GetMethodHandle(method).GetFunctionPointer();
+#else
 			RuntimeHelpers.PrepareMethod(method.MethodHandle);
+#endif
+		}
 
 		// Here we check for overrides that override methods that no longer exist.
 		// tModLoader contributors should consult https://github.com/tModLoader/tModLoader/wiki/tModLoader-Style-Guide#be-aware-of-breaking-changes to properly handle breaking changes, especially once 1.4 is stable.

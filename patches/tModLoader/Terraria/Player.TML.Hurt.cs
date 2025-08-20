@@ -7,6 +7,7 @@ namespace Terraria;
 
 public partial class Player
 {
+	// TMLPE: Modified setters
 	/// <summary>
 	/// Represents a damage calculation in the process of being calculated for damage to be applied to a Player. The final damage calculation will be present in the resulting <see cref="HurtInfo"/> provided to various hooks.
 	/// </summary>
@@ -16,30 +17,30 @@ public partial class Player
 		/// The source of the strike. <br/>
 		/// Use <see cref="PlayerDeathReason.TryGetCausingEntity"/> to get the source of the strike (only safe to do when the target is the local player).
 		/// </summary>
-		public PlayerDeathReason DamageSource { get; init; } = default;
+		public PlayerDeathReason DamageSource { get; set; } = default;
 
 		/// <summary>
 		/// Whether or not this strike came from another player. <br/>
 		/// Note that PvP support in Terraria is rudimentary and inconsistent, so careful research and testing may be required.
 		/// </summary>
-		public bool PvP { get; init; } = default;
+		public bool PvP { get; set; } = default;
 
 		/// <summary>
 		/// The <see cref="ImmunityCooldownID"/> of the strike
 		/// </summary>
-		public int CooldownCounter { get; init; } = ImmunityCooldownID.General;
+		public int CooldownCounter { get; set; } = ImmunityCooldownID.General;
 
 		/// <summary>
 		/// Whether or not this strike was dodgeable.
 		/// </summary>
-		public bool Dodgeable { get; init; } = true;
+		public bool Dodgeable { get; set; } = true;
 
 		/// <summary>
 		/// The direction to apply knockback. If 0, no knockback will be applied. <br/>
 		/// Could potentially be used for directional resistances. <br/>
 		/// Can be overridden by <see cref="HitDirectionOverride"/>
 		/// </summary>
-		public int HitDirection { get; init; } = default;
+		public int HitDirection { get; set; } = default;
 
 		/// <summary>
 		/// Use this to enhance or scale the base damage of the NPC/projectile/hit. <br/>
@@ -113,7 +114,7 @@ public partial class Player
 		private bool _cancelled = default;
 		/// <summary>
 		/// Cancels the Hurt. Further hooks like <see cref="ModPlayer.FreeDodge"/> and <see cref="ModPlayer.OnHurt(HurtInfo)"/> will not be called. <br/>
-		/// Does not automatically apply immune frames, so the player can get hit again next frame. 
+		/// Does not automatically apply immune frames, so the player can get hit again next frame.
 		/// </summary>
 		public void Cancel() => _cancelled = true;
 
