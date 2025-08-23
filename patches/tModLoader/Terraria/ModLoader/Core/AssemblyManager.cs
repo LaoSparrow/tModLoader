@@ -138,7 +138,18 @@ public static class AssemblyManager
 				if (string.IsNullOrEmpty(runtime.Location))
 					return context.LoadFromByteArray(((ModLoadContext)GetLoadContext(runtime)).assemblyBytes[assemblyName.Name]);
 
+#if ANDROID
+				// TMLPE: assembly loading
+				if (Path.IsPathRooted(runtime.Location))
+					return context.LoadFromAssemblyPath(runtime.Location);
+
+				if (MonoAssemblyStoreLoader.TryGetBytesByName(Path.GetFileNameWithoutExtension(runtime.Location), out byte[] bytes))
+					return context.LoadFromByteArray(bytes);
+
+				throw new FileNotFoundException($"could not load assembly {assemblyName.FullName}", runtime.Location);
+#else
 				return context.LoadFromAssemblyPath(runtime.Location);
+#endif
 			}
 		}
 

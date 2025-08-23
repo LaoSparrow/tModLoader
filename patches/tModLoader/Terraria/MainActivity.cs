@@ -1,6 +1,7 @@
 #if ANDROID
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -10,6 +11,7 @@ using Android.OS;
 using Android.Views;
 using Microsoft.Xna.Framework;
 using Terraria.ModLoader;
+using Xamarin.Android.AssemblyStore;
 using SDL = SDL2.SDL;
 using ThreadPriority = Android.OS.ThreadPriority;
 
@@ -59,8 +61,8 @@ namespace Terraria
 			if (!Directory.Exists(logDir))
 				Directory.CreateDirectory(logDir);
 
-			System.Environment.SetEnvironmentVariable("MONOMOD_LogToFile",
-				Path.Combine(logDir, "mmd.log"));
+			System.Environment.SetEnvironmentVariable("MONOMOD_LogToFile", Path.Combine(logDir, "mmd.log"));
+			System.Environment.SetEnvironmentVariable("MONOMOD_DMDType", "dm");
 
 			string titleLocation = (string)typeof(TitleContainer).Assembly.GetType("Microsoft.Xna.Framework.TitleLocation")!.GetProperty("Path",
 				BindingFlags.NonPublic |

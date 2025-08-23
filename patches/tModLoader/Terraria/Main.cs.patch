@@ -2545,7 +2545,7 @@
 -			DoUpdate(ref gameTime);
 +				DoUpdate(ref gameTime);
 +				// TMLPE: FIX IME on Android
-+				ImeFix(ref gameTime);
++				// ImeFix(ref gameTime);
 +			}
 +			catch (Exception e) {
 +				// Logging.Terraria.Error(e); Removed, duplicate log messages.

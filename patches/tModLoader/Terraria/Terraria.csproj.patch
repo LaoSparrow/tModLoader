@@ -1,6 +1,6 @@
 --- src/TerrariaNetCore/Terraria/Terraria.csproj
 +++ src/tModLoader/Terraria/Terraria.csproj
-@@ -11,59 +_,136 @@
+@@ -11,59 +_,140 @@
  		<Company>Re-Logic</Company>
  		<Copyright>Copyright © 2022 Re-Logic</Copyright>
  		<RootNamespace>Terraria</RootNamespace>
@@ -26,19 +26,20 @@
 +		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 +		<RunAOTCompilation>false</RunAOTCompilation>
 +		<UseInterpreter>false</UseInterpreter>
-+		<AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
++		<!--<AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>-->
 +		<MonoGamePlatform>Android</MonoGamePlatform>
 +	</PropertyGroup>
 +
 +	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-android' and '$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 +		<AndroidPackageFormat>apk</AndroidPackageFormat> <!--Has to be apk, or app crashes on startup-->
-+		<!--    <AndroidAotMode>Hybrid</AndroidAotMode>-->
-+		<!--    <TrimMode>link</TrimMode>-->
-+		<!--    <PublishTrimmed>false</PublishTrimmed>-->
++		<!--<AndroidAotMode>Hybrid</AndroidAotMode>-->
++		<!--<TrimMode>link</TrimMode>-->
++		<PublishTrimmed>false</PublishTrimmed>
 +	</PropertyGroup>
 +
 +	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
 +		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4" />
++		<PackageReference Include="K4os.Compression.LZ4" Version="1.3.8" />
 +		
 +		<ExtraContent Include="$(TerrariaSteamPath)/Content/**/*.*">
 +			<ContentDir>Content/</ContentDir>
@@ -147,6 +148,9 @@
  		<Content Include="Libraries/Native/**" CopyToOutputDirectory="PreserveNewest" />
 +		<Content Include="release_extras/**" CopyToOutputDirectory="PreserveNewest" Link="%(RecursiveDir)%(Filename)%(Extension)" />
 +		<Content Remove="Libraries\Native\**" />
++	</ItemGroup>
++	<ItemGroup>
++	  <Folder Include="Xamarin\Android\AssemblyStore\" />
  	</ItemGroup>
  
  	<!-- Import tasks -->
