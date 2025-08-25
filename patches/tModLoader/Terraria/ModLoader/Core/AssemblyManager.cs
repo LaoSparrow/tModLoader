@@ -480,7 +480,7 @@ public static class AssemblyManager
 			message += "\n";
 		}
 
-		message += string.Join("\n", exceptions.Select(x => $"In {x.method.DeclaringType.FullName}.{x.method.Name}, {x.exception.Message}")) + "\n";
+		message += string.Join("\n", exceptions.Select(x => $"In {x.method.DeclaringType.FullName}.{x.method.Name}, {x.exception}")) + "\n";
 		var jitException = new Exceptions.JITException(message);
 		if(exceptions.Any(e => e.exception.Data.Contains("mod")))
 			jitException.Data["mods"] = exceptions.Select(e => (string)e.exception.Data["mod"]).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToArray();
@@ -514,33 +514,66 @@ public static class AssemblyManager
 		typeof(DynamicMethod).GetMethod("CreateDynMethod", BindingFlags.NonPublic | BindingFlags.Instance)!;
 
 	private static readonly FieldInfo _DynamicMethod_mhandle =
-		typeof(DynamicMethod).GetField("mhandle", BindingFlags.NonPublic | BindingFlags.Instance)!;
+		typeof(DynamicMethod).GetField("_mhandle", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+	public static RuntimeMethodHandle GetMethodHandle(MethodBase method)
+	{
+		// Compile the method handle before getting our hands on the final method handle.
+		// Note that Mono can return RuntimeMethodInfo instead of DynamicMethod in some places, thus bypassing this.
+		// Let's assume that the method was already compiled ahead of this method call if that is the case.
+		if (method is DynamicMethod)
+		{
+			_DynamicMethod_CreateDynMethod?.Invoke(method, ArrayEx.Empty<object?>());
+			if (_DynamicMethod_mhandle != null)
+				return (RuntimeMethodHandle)_DynamicMethod_mhandle.GetValue(method)!;
+		}
+
+		return method.MethodHandle;
+	}
+
+	public static unsafe void DisableVisibilityCheck(MethodBase method)
+	{
+		var handle = GetMethodHandle(method);
+		// https://github.com/mono/mono/blob/34dee0ea4e969d6d5b37cb842fc3b9f73f2dc2ae/mono/metadata/class-internals.h#L82
+		// bitFields
+		// /* this is used by the inlining algorithm */
+		// unsigned int inline_info:1;
+		// unsigned int inline_failure:1;
+		// unsigned int wrapper_type:5;
+		// unsigned int string_ctor:1;
+		// unsigned int save_lmf:1;
+		// unsigned int dynamic:1; /* created & destroyed during runtime */
+		// unsigned int sre_method:1; /* created at runtime using Reflection.Emit */
+		// unsigned int is_generic:1; /* whenever this is a generic method definition */
+		// unsigned int is_inflated:1; /* whether we're a MonoMethodInflated */
+		// unsigned int skip_visibility:1; /* whenever to skip JIT visibility checks */
+		// unsigned int verification_success:1; /* whether this method has been verified successfully.*/
+		// unsigned int is_reabstracted:1; /* whenever this is a reabstraction of another interface */
+		var bitFields = (ushort*)((long)handle.Value +
+		                          2 + // guint16 flags;  /* method flags */
+		                          2 + // guint16 iflags; /* method implementation flags */
+		                          4 + // guint32 token;
+		                          IntPtr.Size + // MonoClass *klass; /* To what class does this method belong */
+		                          IntPtr.Size + // MonoMethodSignature *signature;
+		                          IntPtr.Size // const char *name;
+			);
+		*bitFields |= 0b1 << 13; // skip_visibility
+	}
 #endif
 
 	private static void ForceJITOnMethod(MethodBase method)
 	{
-		if (method.GetMethodBody() != null) {
 #if ANDROID
-			RuntimeMethodHandle GetMethodHandle(MethodBase method)
-			{
-				// Compile the method handle before getting our hands on the final method handle.
-				// Note that Mono can return RuntimeMethodInfo instead of DynamicMethod in some places, thus bypassing this.
-				// Let's assume that the method was already compiled ahead of this method call if that is the case.
-				if (method is DynamicMethod)
-				{
-					_DynamicMethod_CreateDynMethod?.Invoke(method, ArrayEx.Empty<object?>());
-					if (_DynamicMethod_mhandle != null)
-						return (RuntimeMethodHandle)_DynamicMethod_mhandle.GetValue(method)!;
-				}
-
-				return method.MethodHandle;
-			}
+		if (method.GetMethodBody() != null) {
+			DisableVisibilityCheck(method);
 			// GetFunctionPointer forces the method to be compiled on Mono
 			_ = GetMethodHandle(method).GetFunctionPointer();
-#else
-			RuntimeHelpers.PrepareMethod(method.MethodHandle);
-#endif
 		}
+#else
+		if (method.GetMethodBody() != null) {
+			RuntimeHelpers.PrepareMethod(method.MethodHandle);
+		}
+#endif
 
 		// Here we check for overrides that override methods that no longer exist.
 		// tModLoader contributors should consult https://github.com/tModLoader/tModLoader/wiki/tModLoader-Style-Guide#be-aware-of-breaking-changes to properly handle breaking changes, especially once 1.4 is stable.

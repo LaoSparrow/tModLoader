@@ -78,8 +78,8 @@
 +	<PropertyGroup>
 +		<!-- Force Set TmlVersion -->
 +		<tMLVersion Condition="'$(TmlVersion)' == ''">2025.6.3.0</tMLVersion>
-+		<StableVersion Condition="'$(stableVersion)' == ''">0.0</StableVersion>
-+		<BuildPurpose Condition="'$(BuildPurpose)' == ''">dev</BuildPurpose>
++		<StableVersion Condition="'$(stableVersion)' == ''">2025.06</StableVersion>
++		<BuildPurpose Condition="'$(BuildPurpose)' == ''">stable</BuildPurpose>
 +		<BranchName Condition="'$(BranchName)' == ''">unknown</BranchName>
 +		<BranchName>$(BranchName.Replace("|","-"))</BranchName>
 +		<CommitSHA Condition="'$(CommitSHA)' == ''">unknown</CommitSHA>
