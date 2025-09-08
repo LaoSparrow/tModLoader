@@ -1,6 +1,6 @@
 --- src/TerrariaNetCore/Terraria/Terraria.csproj
 +++ src/tModLoader/Terraria/Terraria.csproj
-@@ -11,59 +_,140 @@
+@@ -11,59 +_,137 @@
  		<Company>Re-Logic</Company>
  		<Copyright>Copyright © 2022 Re-Logic</Copyright>
  		<RootNamespace>Terraria</RootNamespace>
@@ -148,9 +148,6 @@
  		<Content Include="Libraries/Native/**" CopyToOutputDirectory="PreserveNewest" />
 +		<Content Include="release_extras/**" CopyToOutputDirectory="PreserveNewest" Link="%(RecursiveDir)%(Filename)%(Extension)" />
 +		<Content Remove="Libraries\Native\**" />
-+	</ItemGroup>
-+	<ItemGroup>
-+	  <Folder Include="Xamarin\Android\AssemblyStore\" />
  	</ItemGroup>
  
  	<!-- Import tasks -->
