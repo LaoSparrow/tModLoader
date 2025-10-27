@@ -21,7 +21,7 @@
 +		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
 +		<ApplicationId Condition="'$(ApplicationId)' == '' and '$(Configuration)' == 'Debug'">io.github.laosparrow.tmlpe</ApplicationId>
 +		<!-- Fuck Android -->
-+		<ApplicationId Condition="'$(ApplicationId)' == '' and '$(Configuration)' == 'Release'">com.antutu.ABenchMark</ApplicationId>
++		<ApplicationId Condition="'$(ApplicationId)' == '' and '$(Configuration)' == 'Release'">com.primatelabs.geekbench6</ApplicationId>
 +		<ApplicationVersion>1</ApplicationVersion>
 +		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 +		<RunAOTCompilation>false</RunAOTCompilation>

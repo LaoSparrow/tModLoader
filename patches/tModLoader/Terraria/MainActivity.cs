@@ -5,10 +5,14 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Android;
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using Android.Provider;
 using Android.Views;
+using Android.Widget;
 using Microsoft.Xna.Framework;
 using Terraria.ModLoader;
 using Xamarin.Android.AssemblyStore;
@@ -51,12 +55,24 @@ namespace Terraria
 			SDL.SDL_SetHint("FNA3D_FORCE_DRIVER", "OpenGL");
 			SDL.SDL_SetHint("FNA3D_OPENGL_FORCE_ES3", "1");
 
-			System.Environment.SetEnvironmentVariable("XDG_DATA_HOME", Path.Combine(GetExternalFilesDir(null)!.AbsolutePath, "XDGDataHome"));
-			System.Environment.SetEnvironmentVariable("XDG_CONFIG_HOME", Path.Combine(GetExternalFilesDir(null)!.AbsolutePath, "XDGConfigHome"));
-			System.Environment.SetEnvironmentVariable("HOME", GetExternalFilesDir(null)!.AbsolutePath);
+			// Assets Path
+			SDL.SDL_SetHint("FNA_SET_BASE_PATH", GetExternalFilesDir(null)!.AbsolutePath);
+			System.Environment.SetEnvironmentVariable("FNA_SET_BASE_PATH", GetExternalFilesDir(null)!.AbsolutePath);
 			Directory.SetCurrentDirectory(GetExternalFilesDir(null)!.AbsolutePath);
 
-			typeof(Logging).GetField("LogDir")!.SetValue(null, Path.Combine(GetExternalFilesDir(null)!.AbsolutePath, "tModLoader-Logs"));
+			// Saves Path
+			var savesPath = Path.Combine("/storage/emulated/0", "io.github.laosparrow.tmlpe"); // sorry I have to hardcode this
+			if (!Directory.Exists(savesPath))
+				Directory.CreateDirectory(savesPath);
+			System.Environment.SetEnvironmentVariable("XDG_DATA_HOME",
+				Path.Combine(savesPath, "XDGDataHome"));
+			System.Environment.SetEnvironmentVariable("XDG_CONFIG_HOME",
+				Path.Combine(savesPath, "XDGConfigHome"));
+			System.Environment.SetEnvironmentVariable("HOME",
+				savesPath);
+
+			typeof(Logging).GetField("LogDir")!.SetValue(null,
+				Path.Combine(savesPath, "tModLoader-Logs"));
 			string logDir = (string)typeof(Logging).GetField("LogDir")!.GetValue(null)!;
 			if (!Directory.Exists(logDir))
 				Directory.CreateDirectory(logDir);
@@ -64,10 +80,12 @@ namespace Terraria
 			System.Environment.SetEnvironmentVariable("MONOMOD_LogToFile", Path.Combine(logDir, "mmd.log"));
 			System.Environment.SetEnvironmentVariable("MONOMOD_DMDType", "dm");
 
-			string titleLocation = (string)typeof(TitleContainer).Assembly.GetType("Microsoft.Xna.Framework.TitleLocation")!.GetProperty("Path",
-				BindingFlags.NonPublic |
-				BindingFlags.Public |
-				BindingFlags.Static)!.GetValue(null)!;
+			string titleLocation =
+				(string)typeof(TitleContainer).Assembly.GetType("Microsoft.Xna.Framework.TitleLocation")!.GetProperty(
+					"Path",
+					BindingFlags.NonPublic |
+					BindingFlags.Public |
+					BindingFlags.Static)!.GetValue(null)!;
 			foreach (string f in EnumerateAssetFiles("Content")) {
 				string path = Path.Combine(titleLocation, f);
 				if (File.Exists(path)) {
@@ -116,6 +134,31 @@ namespace Terraria
 			Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 			Window.AddFlags(WindowManagerFlags.TranslucentNavigation);
 			Window.AddFlags(WindowManagerFlags.TranslucentStatus);
+
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.R) {
+				if (!Environment.IsExternalStorageManager) {
+					Toast.MakeText(Context, "android.permission.MANAGE_EXTERNAL_STORAGE is required",
+						ToastLength.Long)!.Show();
+					var intent = new Intent(Settings.ActionManageAllFilesAccessPermission);
+					StartActivity(intent);
+					Finish();
+				}
+			}
+			else {
+				if (Context.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) != Permission.Granted ||
+				    Context.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted) {
+					RequestPermissions([
+						Manifest.Permission.ReadExternalStorage,
+						Manifest.Permission.WriteExternalStorage
+					], 1);
+					if (Context.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) != Permission.Granted ||
+					    Context.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted) {
+						Toast.MakeText(Context, "android.permission.MANAGE_EXTERNAL_STORAGE is required",
+							ToastLength.Long)!.Show();
+						Finish();
+					}
+				}
+			}
 		}
 
 		public override void OnWindowFocusChanged(bool hasFocus)
