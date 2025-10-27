@@ -145,15 +145,11 @@ namespace Terraria
 				}
 			}
 			else {
-				if (Context.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) != Permission.Granted ||
-				    Context.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted) {
-					RequestPermissions([
-						Manifest.Permission.ReadExternalStorage,
-						Manifest.Permission.WriteExternalStorage
-					], 1);
-					if (Context.CheckSelfPermission(Manifest.Permission.ReadExternalStorage) != Permission.Granted ||
-					    Context.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted) {
-						Toast.MakeText(Context, "android.permission.MANAGE_EXTERNAL_STORAGE is required",
+				if (Context.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted) {
+					RequestPermission(Manifest.Permission.WriteExternalStorage, 1);
+					Thread.Sleep(5000); // bad practice
+					if (Context.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted) {
+						Toast.MakeText(Context, "android.permission.WRITE_EXTERNAL_STORAGE is required",
 							ToastLength.Long)!.Show();
 						Finish();
 					}
